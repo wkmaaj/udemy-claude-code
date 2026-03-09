@@ -1,0 +1,692 @@
+[
+  {
+    "category": "database",
+    "description": "Create SQLite database with better-auth schema",
+    "steps": [
+      "Create data.db SQLite file using bun:sqlite",
+      "Create user table with id, name, email, emailVerified, image, createdAt, updatedAt",
+      "Create session table with id, userId (FK → user.id), token (UNIQUE), expiresAt, ipAddress, userAgent, createdAt, updatedAt",
+      "Create account table with id, userId (FK → user.id), accountId, providerId, accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt, scope, idToken, password, createdAt, updatedAt",
+      "Create verification table with id, identifier, value, expiresAt, createdAt, updatedAt",
+      "Verify all tables exist with correct structure"
+    ],
+    "passes": false
+  },
+  {
+    "category": "database",
+    "description": "Create definitions table with indexes",
+    "steps": [
+      "Create definitions table with id (TEXT PK), user_id (TEXT FK → user.id), arabic_word (TEXT NOT NULL), content (TEXT NOT NULL), is_public (INTEGER NOT NULL DEFAULT 0), share_slug (TEXT UNIQUE), created_at (TEXT DEFAULT datetime('now')), updated_at (TEXT DEFAULT datetime('now'))",
+      "Create index on definitions(user_id)",
+      "Create index on definitions(share_slug)",
+      "Create index on definitions(arabic_word)",
+      "Verify table structure and indexes"
+    ],
+    "passes": false
+  },
+  {
+    "category": "database",
+    "description": "Create tags and definition_tags tables",
+    "steps": [
+      "Create tags table with id (TEXT PK), user_id (TEXT FK → user.id), name (TEXT NOT NULL)",
+      "Add UNIQUE constraint on (user_id, name)",
+      "Create definition_tags join table with definition_id (TEXT FK → definitions.id), tag_id (TEXT FK → tags.id)",
+      "Add composite primary key on (definition_id, tag_id)",
+      "Set CASCADE DELETE on both foreign keys",
+      "Create indexes on definition_tags(definition_id) and definition_tags(tag_id)",
+      "Verify table structure, constraints, and indexes"
+    ],
+    "passes": false
+  },
+  {
+    "category": "database",
+    "description": "Create FTS5 virtual table for full-text search",
+    "steps": [
+      "Create definitions_fts virtual table using FTS5 with arabic_word and content_text columns",
+      "Set content=definitions and content_rowid=rowid",
+      "Create INSERT trigger to sync new definitions to FTS index",
+      "Create UPDATE trigger to keep FTS index in sync on changes",
+      "Create DELETE trigger to remove entries from FTS index",
+      "Verify FTS search returns ranked results with MATCH operator"
+    ],
+    "passes": false
+  },
+  {
+    "category": "database",
+    "description": "Build database access utilities (lib/db.ts)",
+    "steps": [
+      "Create lib/db.ts with bun:sqlite connection to data.db",
+      "Implement singleton getDb() pattern",
+      "Create query<T>() utility with generic type safety",
+      "Create get<T>() for single row queries",
+      "Create run() for INSERT/UPDATE/DELETE with parameterized queries",
+      "Initialize schema on first connection (create all tables if not exist)",
+      "Test utilities with sample queries"
+    ],
+    "passes": false
+  },
+  {
+    "category": "database",
+    "description": "Define Definition and Tag types and helper functions",
+    "steps": [
+      "Define Definition type with camelCase fields (id, userId, arabicWord, content, isPublic, shareSlug, createdAt, updatedAt)",
+      "Define Tag type with id, userId, name fields",
+      "Create helper to map DB row (snake_case) to Definition type (camelCase)",
+      "Create helper to map DB row to Tag type",
+      "Create generateShareSlug() using nanoid (10-12 chars)",
+      "Create extractPlainText() to strip TipTap JSON to plain text for FTS",
+      "Create default empty TipTap JSON document constant",
+      "Export all types and helpers"
+    ],
+    "passes": false
+  },
+  {
+    "category": "database",
+    "description": "Implement definition CRUD repository functions",
+    "steps": [
+      "Create createDefinition(userId, arabicWord, content, tagIds?) — INSERT with crypto.randomUUID(), return created Definition",
+      "Create getDefinitionById(userId, definitionId) — SELECT with user_id authorization check, return Definition or null",
+      "Create getDefinitionsByUser(userId, options?) — SELECT all user definitions, support ?q= search, ?tag= filter, ?sort= sorting",
+      "Create updateDefinition(userId, definitionId, data) — partial UPDATE for arabic_word, content, tag_ids; auto-update updated_at; enforce user_id authorization",
+      "Create deleteDefinition(userId, definitionId) — DELETE only if user owns it, return boolean success",
+      "Test authorization is enforced on all operations"
+    ],
+    "passes": false
+  },
+  {
+    "category": "database",
+    "description": "Implement definition sharing repository functions",
+    "steps": [
+      "Create shareDefinition(userId, definitionId) — generate share_slug with nanoid, set is_public = 1, return slug",
+      "Create unshareDefinition(userId, definitionId) — clear share_slug, set is_public = 0",
+      "Create getDefinitionBySlug(slug) — SELECT where share_slug matches AND is_public = 1, no auth check needed",
+      "Return null/404 for invalid slugs or unshared definitions",
+      "Test sharing and unsharing flow end-to-end"
+    ],
+    "passes": false
+  },
+  {
+    "category": "database",
+    "description": "Implement tag repository functions",
+    "steps": [
+      "Create createTag(userId, name) — INSERT with duplicate check on (user_id, name)",
+      "Create getTagsByUser(userId) — SELECT all user tags",
+      "Create deleteTag(userId, tagId) — DELETE with cascade removal from definition_tags",
+      "Create addTagsToDefinition(definitionId, tagIds) — INSERT into definition_tags",
+      "Create removeTagsFromDefinition(definitionId, tagIds) — DELETE from definition_tags",
+      "Create getTagsForDefinition(definitionId) — SELECT tags joined via definition_tags"
+    ],
+    "passes": false
+  },
+  {
+    "category": "database",
+    "description": "Implement search with FTS5",
+    "steps": [
+      "Create searchDefinitions(userId, query) function using FTS5 MATCH",
+      "Search across both arabic_word and content_text columns",
+      "Rank results using BM25 scoring",
+      "Filter results to only user-owned definitions",
+      "Support mixed Arabic and English search queries",
+      "Test search returns relevant ranked results"
+    ],
+    "passes": false
+  },
+  {
+    "category": "auth",
+    "description": "Configure better-auth server (lib/auth.ts)",
+    "steps": [
+      "Create lib/auth.ts with betterAuth configuration",
+      "Configure SQLite database adapter using bun:sqlite",
+      "Set up email/password credential provider",
+      "Configure Google OAuth provider (client ID + secret from env)",
+      "Configure GitHub OAuth provider (client ID + secret from env)",
+      "Configure session management with HTTP-only cookies",
+      "Export auth instance"
+    ],
+    "passes": false
+  },
+  {
+    "category": "auth",
+    "description": "Create better-auth API route",
+    "steps": [
+      "Create app/api/auth/[...all]/route.ts",
+      "Export GET and POST handlers from better-auth",
+      "Use auth.handler for both methods",
+      "Test auth endpoints respond at /api/auth/*"
+    ],
+    "passes": false
+  },
+  {
+    "category": "auth",
+    "description": "Implement server-side auth helpers",
+    "steps": [
+      "Create getSession() helper for server components using cookies/headers",
+      "Create requireAuth() helper that redirects to login if not authenticated",
+      "Return session with userId for use in data fetching",
+      "Export helpers from lib/auth.ts",
+      "Test helpers return correct session data"
+    ],
+    "passes": false
+  },
+  {
+    "category": "auth",
+    "description": "Create auth client for frontend",
+    "steps": [
+      "Create lib/auth-client.ts with createAuthClient()",
+      "Export signIn, signUp, signOut methods",
+      "Export useSession hook for client components",
+      "Test client can be imported without errors"
+    ],
+    "passes": false
+  },
+  {
+    "category": "api",
+    "description": "Create definitions API routes",
+    "steps": [
+      "Create app/api/definitions/route.ts with GET (list) and POST (create) handlers",
+      "Create app/api/definitions/[id]/route.ts with GET, PATCH, DELETE handlers",
+      "Validate session on all routes, return 401 if unauthenticated",
+      "Enforce ownership checks, return 403 if not owner",
+      "Use Zod for request body validation on POST and PATCH",
+      "Support query params: ?q= for search, ?tag= for tag filter, ?sort= for sorting",
+      "Return proper status codes (201 on create, 200 on success, 400/404 on error)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "api",
+    "description": "Create share/unshare API routes",
+    "steps": [
+      "Create app/api/definitions/[id]/share/route.ts with POST handler",
+      "Create app/api/definitions/[id]/unshare/route.ts with POST handler",
+      "Generate share_slug and set is_public = 1 on share",
+      "Clear share_slug and set is_public = 0 on unshare",
+      "Return share_slug and full share_url on share response",
+      "Create app/api/shared/[slug]/route.ts with GET handler (no auth required)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "api",
+    "description": "Create tags API routes",
+    "steps": [
+      "Create app/api/tags/route.ts with GET (list) and POST (create) handlers",
+      "Create app/api/tags/[id]/route.ts with DELETE handler",
+      "Validate session on all routes",
+      "Use Zod for tag name validation on POST",
+      "Cascade delete removes tag from all definition_tags entries",
+      "Return proper status codes"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Build sign up form component",
+    "steps": [
+      "Create components/SignUpForm.tsx client component",
+      "Add name, email, password inputs with controlled state",
+      "Add client-side validation (email format, password length)",
+      "Integrate with auth client signUp method",
+      "Display error messages on failure",
+      "Handle success (redirect to dashboard)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Build login form component",
+    "steps": [
+      "Create components/LoginForm.tsx client component",
+      "Add email, password inputs with controlled state",
+      "Add client-side validation",
+      "Integrate with auth client signIn method for email/password",
+      "Add Google and GitHub OAuth sign-in buttons",
+      "Display error messages on failure",
+      "Handle success (redirect to dashboard)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Create authentication pages",
+    "steps": [
+      "Create app/(auth)/login/page.tsx with LoginForm",
+      "Create app/(auth)/register/page.tsx with SignUpForm",
+      "Add links to toggle between login and register",
+      "Redirect to /definitions after successful auth",
+      "Style pages with centered card layout"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Add app header with auth state",
+    "steps": [
+      "Create components/Header.tsx server component",
+      "Check auth state with getSession()",
+      "Show app name/logo linking to home",
+      "Show Login/Register links when not authenticated",
+      "Show Definitions link, Tags link, and Logout button when authenticated",
+      "Add to app/layout.tsx"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Implement logout functionality",
+    "steps": [
+      "Create components/LogoutButton.tsx client component",
+      "Call signOut from auth client on click",
+      "Redirect to / after logout",
+      "Add to Header component",
+      "Test logout clears session"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Build definitions list page (dashboard)",
+    "steps": [
+      "Create app/(dashboard)/definitions/page.tsx as server component",
+      "Use requireAuth() to protect and get session",
+      "Fetch definitions with getDefinitionsByUser() directly",
+      "Display search bar with debounced input (300ms)",
+      "Add sort dropdown (alphabetical, date created, date updated)",
+      "Add tag filter dropdown/chips",
+      "Handle empty state with helpful message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Create definition card/list component",
+    "steps": [
+      "Create components/definitions/DefinitionCard.tsx",
+      "Display arabic_word with dir='rtl' and Arabic font, larger size",
+      "Show preview snippet of English content (truncated plain text)",
+      "Display associated tags as badges",
+      "Show shared status indicator (icon/badge) if is_public",
+      "Show updated_at date",
+      "Link each card to /definitions/[id]"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Add create definition button and flow",
+    "steps": [
+      "Create components/definitions/CreateDefinitionButton.tsx client component",
+      "POST to /api/definitions on click with empty defaults",
+      "Navigate to /definitions/[id] after creation",
+      "Show loading state while creating",
+      "Add to definitions list page"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Create loading and error states for definitions list",
+    "steps": [
+      "Create app/(dashboard)/definitions/loading.tsx with skeleton cards",
+      "Create app/(dashboard)/definitions/error.tsx with error boundary",
+      "Add 'Try again' functionality",
+      "Style appropriately"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Build definition editor page with RSC",
+    "steps": [
+      "Create app/(dashboard)/definitions/[id]/page.tsx as server component",
+      "Use requireAuth() and get session",
+      "Fetch definition with getDefinitionById()",
+      "Fetch tags for definition with getTagsForDefinition()",
+      "Return 404 if not found or not owned",
+      "Pass definition and tags data to editor component"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Create TipTap editor component",
+    "steps": [
+      "Create components/editor/DefinitionEditor.tsx client component",
+      "Import useEditor and EditorContent from @tiptap/react",
+      "Import StarterKit, Code, CodeBlock, Placeholder, TextDirection extensions",
+      "Configure heading levels 1-3",
+      "Configure Placeholder with 'Write your definition...' text",
+      "Initialize with definition's content JSON",
+      "Add onChange callback to track content changes"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Add arabic word input to editor page",
+    "steps": [
+      "Add controlled arabic_word input with dir='rtl'",
+      "Use Arabic-friendly font (Noto Sans Arabic or Amiri) with larger size",
+      "Initialize with definition.arabicWord",
+      "Track changes in state",
+      "Style input appropriately for RTL"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Build editor toolbar with formatting buttons",
+    "steps": [
+      "Create components/editor/EditorToolbar.tsx component",
+      "Add text style dropdown (Normal, Heading 1, Heading 2, Heading 3)",
+      "Add Bold and Italic toggle buttons",
+      "Add Inline code toggle button",
+      "Add Code block toggle button",
+      "Add Bullet list toggle button",
+      "Add Horizontal rule insert button",
+      "Show active state for current formatting",
+      "Style toolbar as minimal and clean"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Add tag selector to editor",
+    "steps": [
+      "Create components/tags/TagSelector.tsx client component",
+      "Display current tags as removable badges",
+      "Add type-ahead search input for existing tags",
+      "Allow creating new tags inline",
+      "Call tag API routes to create/add/remove tags",
+      "Integrate into definition editor page"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Implement save functionality",
+    "steps": [
+      "Add Save button to editor that PATCHes /api/definitions/[id]",
+      "Implement debounced auto-save on content changes (1-2 second delay)",
+      "Show save status indicator (saving/saved/error)",
+      "Don't trigger auto-save on initial load",
+      "Send arabic_word, content, and tag_ids in update payload"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Add delete functionality to editor",
+    "steps": [
+      "Add Delete button to editor page",
+      "Show confirmation dialog before delete",
+      "Call DELETE /api/definitions/[id] on confirm",
+      "Redirect to /definitions after delete",
+      "Show loading state during deletion"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Add navigation and error handling to editor",
+    "steps": [
+      "Add 'Back to Definitions' link",
+      "Handle 404 errors gracefully",
+      "Show toast notifications for save/delete results",
+      "Create loading.tsx for editor page"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Build share toggle component",
+    "steps": [
+      "Create components/definitions/ShareToggle.tsx client component",
+      "Add toggle switch for public/private",
+      "Call POST /api/definitions/[id]/share on enable",
+      "Call POST /api/definitions/[id]/unshare on disable",
+      "Display full public URL when enabled (e.g., https://domain/shared/slug)",
+      "Add Copy URL button with navigator.clipboard",
+      "Show 'Copied!' feedback for 2 seconds",
+      "Integrate into definition editor page"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Build public shared definition page",
+    "steps": [
+      "Create app/shared/[slug]/page.tsx as server component",
+      "Fetch definition with getDefinitionBySlug()",
+      "Return 404 if not found or not public",
+      "No auth check needed (public route)",
+      "Display arabic_word as heading with RTL, Arabic font, large size",
+      "Render TipTap content with editable: false (read-only mode)",
+      "Style for comfortable reading (typography, spacing)",
+      "No editing controls visible"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Build tag management page",
+    "steps": [
+      "Create app/(dashboard)/tags/page.tsx as server component",
+      "Use requireAuth() to protect page",
+      "Fetch all user tags with getTagsByUser()",
+      "Display tags as list with delete button each",
+      "Add form to create new tag",
+      "Show confirmation before deleting a tag",
+      "Show count of definitions per tag"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Style the landing page",
+    "steps": [
+      "Update app/page.tsx with marketing copy for Arabic-English dictionary",
+      "Add feature highlights (rich text, sharing, search, tags, bilingual)",
+      "Add CTA buttons for Login and Register",
+      "Ensure responsive layout",
+      "Include RTL/Arabic visual elements to convey bilingual nature"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Configure Arabic and Latin font stack",
+    "steps": [
+      "Set up Latin font (Inter) via next/font",
+      "Set up Arabic font (Noto Sans Arabic or Amiri) via next/font or Google Fonts",
+      "Apply Arabic font to dir='rtl' elements and arabic_word fields",
+      "Apply Latin font to UI shell and English content",
+      "Ensure font sizes for Arabic headwords are noticeably larger"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Implement RTL and bidirectional support",
+    "steps": [
+      "Set dir='rtl' on arabic_word input fields",
+      "Configure TipTap TextDirection extension for auto-detection per block",
+      "Use Tailwind RTL utilities (rtl: prefix) where needed",
+      "Test mixed Arabic/English content renders correctly",
+      "Ensure public shared view respects directional settings from TipTap JSON"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Apply consistent styling and responsive design",
+    "steps": [
+      "Review all pages for consistent spacing/padding",
+      "Style editor with clean, minimal design",
+      "Add typography styles for definition content",
+      "Test on mobile viewport (375px)",
+      "Test on tablet viewport (768px)",
+      "Adjust layouts with Tailwind responsive classes",
+      "Ensure touch targets are appropriate",
+      "Test navigation works on mobile"
+    ],
+    "passes": false
+  },
+  {
+    "category": "testing",
+    "description": "Set up Vitest configuration",
+    "steps": [
+      "Create vitest.config.ts with jsdom environment",
+      "Configure path aliases matching tsconfig",
+      "Set test file patterns",
+      "Verify 'bun test' runs correctly"
+    ],
+    "passes": false
+  },
+  {
+    "category": "testing",
+    "description": "Write unit tests for database utilities",
+    "steps": [
+      "Create __tests__/lib/db.test.ts",
+      "Test getDb() singleton pattern",
+      "Test query<T>() with sample data",
+      "Test get<T>() returns single row",
+      "Test run() executes mutations"
+    ],
+    "passes": false
+  },
+  {
+    "category": "testing",
+    "description": "Write unit tests for definition repository",
+    "steps": [
+      "Create __tests__/lib/definitions.test.ts",
+      "Test createDefinition() with defaults",
+      "Test getDefinitionById() authorization",
+      "Test updateDefinition() updates timestamp",
+      "Test deleteDefinition() authorization",
+      "Test shareDefinition() generates slug",
+      "Test unshareDefinition() clears slug",
+      "Test getDefinitionBySlug() only returns public definitions"
+    ],
+    "passes": false
+  },
+  {
+    "category": "testing",
+    "description": "Write unit tests for tag repository",
+    "steps": [
+      "Create __tests__/lib/tags.test.ts",
+      "Test createTag() with duplicate prevention",
+      "Test getTagsByUser() returns user-scoped tags",
+      "Test deleteTag() cascades to definition_tags",
+      "Test addTagsToDefinition() and removeTagsFromDefinition()"
+    ],
+    "passes": false
+  },
+  {
+    "category": "testing",
+    "description": "Write unit tests for FTS5 search",
+    "steps": [
+      "Create __tests__/lib/search.test.ts",
+      "Test search returns matching Arabic words",
+      "Test search returns matching English content",
+      "Test mixed Arabic/English queries",
+      "Test results are scoped to user",
+      "Test BM25 ranking returns most relevant first"
+    ],
+    "passes": false
+  },
+  {
+    "category": "testing",
+    "description": "Write unit tests for API routes",
+    "steps": [
+      "Create __tests__/api/definitions.test.ts",
+      "Mock auth session",
+      "Test CRUD operations return correct status codes",
+      "Test 401 for unauthenticated requests",
+      "Test 403 for unauthorized access",
+      "Test Zod validation rejects invalid payloads",
+      "Test share/unshare endpoints"
+    ],
+    "passes": false
+  },
+  {
+    "category": "testing",
+    "description": "Set up Playwright for E2E testing",
+    "steps": [
+      "Install @playwright/test and browsers",
+      "Create playwright.config.ts with webServer config",
+      "Create e2e/ directory",
+      "Create e2e/helpers/auth.ts with signUp/login helpers",
+      "Create e2e/setup.ts for test database setup",
+      "Verify 'bun test:e2e' runs"
+    ],
+    "passes": false
+  },
+  {
+    "category": "testing",
+    "description": "Write E2E tests for authentication",
+    "steps": [
+      "Create e2e/auth.spec.ts",
+      "Test user can register with email/password",
+      "Test user can log in",
+      "Test invalid credentials show error",
+      "Test redirect to /definitions after auth",
+      "Test logout works"
+    ],
+    "passes": false
+  },
+  {
+    "category": "testing",
+    "description": "Write E2E tests for definition CRUD",
+    "steps": [
+      "Create e2e/definitions.spec.ts",
+      "Test creating new definition from list page",
+      "Test editing arabic_word and content",
+      "Test formatting (bold, italic, headings, code, lists)",
+      "Test auto-save works",
+      "Test delete with confirmation"
+    ],
+    "passes": false
+  },
+  {
+    "category": "testing",
+    "description": "Write E2E tests for search, tags, and sorting",
+    "steps": [
+      "Create e2e/search-tags.spec.ts",
+      "Test searching definitions by Arabic word",
+      "Test searching definitions by English content",
+      "Test filtering by tag",
+      "Test sorting by alphabetical order",
+      "Test sorting by date created/updated",
+      "Test creating and deleting tags"
+    ],
+    "passes": false
+  },
+  {
+    "category": "testing",
+    "description": "Write E2E tests for definition sharing",
+    "steps": [
+      "Create e2e/sharing.spec.ts",
+      "Test toggling public sharing on",
+      "Test public URL is displayed with share_slug",
+      "Test anonymous access to shared definition",
+      "Test 404 for private/invalid slugs",
+      "Test copy URL button works",
+      "Test unsharing makes link return 404"
+    ],
+    "passes": false
+  },
+  {
+    "category": "testing",
+    "description": "Write E2E tests for RTL and responsive layout",
+    "steps": [
+      "Create e2e/rtl-responsive.spec.ts",
+      "Test Arabic text input renders RTL",
+      "Test TipTap editor handles mixed direction content",
+      "Test mobile viewport layout (375px)",
+      "Test tablet viewport layout (768px)",
+      "Verify all interactions work on mobile"
+    ],
+    "passes": false
+  }
+]
