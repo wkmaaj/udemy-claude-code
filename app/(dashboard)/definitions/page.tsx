@@ -86,7 +86,7 @@ function DefinitionsPageInner() {
         <h1 className='text-2xl font-bold text-gray-900'>Definitions</h1>
         <Link
           href='/definitions/new'
-          className='rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors'
+          className='rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-600 transition-colors'
         >
           + New definition
         </Link>
@@ -99,13 +99,13 @@ function DefinitionsPageInner() {
           placeholder='Search…'
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className='flex-1 min-w-48 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+          className='flex-1 min-w-48 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500'
         />
 
         <select
           value={tagFilter}
           onChange={(e) => setTagFilter(e.target.value)}
-          className='rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500'
+          className='rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500'
         >
           <option value=''>All tags</option>
           {tags.map((t) => (
@@ -118,7 +118,7 @@ function DefinitionsPageInner() {
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value)}
-          className='rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500'
+          className='rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500'
         >
           <option value='created_desc'>Newest first</option>
           <option value='created_asc'>Oldest first</option>
@@ -134,7 +134,7 @@ function DefinitionsPageInner() {
       ) : definitions.length === 0 ? (
         <div className='text-center py-16 space-y-3'>
           <p className='text-gray-500'>No definitions found.</p>
-          <Link href='/definitions/new' className='text-sm text-blue-600 hover:underline'>
+          <Link href='/definitions/new' className='text-sm text-green-500 hover:underline'>
             Create your first definition
           </Link>
         </div>
@@ -145,7 +145,7 @@ function DefinitionsPageInner() {
               <button
                 type='button'
                 onClick={() => router.push(`/definitions/${def.id}/edit`)}
-                className='w-full text-left rounded-xl border border-gray-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm transition-all space-y-2'
+                className='w-full text-left rounded-xl border border-gray-200 bg-white p-4 hover:border-green-300 hover:shadow-sm transition-all space-y-2'
               >
                 <div className='flex items-start justify-between gap-4'>
                   <p dir='rtl' className='text-xl font-bold text-gray-900 leading-tight'>

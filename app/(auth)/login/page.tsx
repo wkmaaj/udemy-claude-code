@@ -72,7 +72,7 @@ function LoginForm() {
             {isRegister ? 'Already have an account? ' : 'Don\u2019t have an account? '}
             <Link
               href={isRegister ? '/login' : '/login?mode=register'}
-              className='font-medium text-blue-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded'
+              className='font-medium text-green-500 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 rounded'
             >
               {isRegister ? 'Sign in' : 'Create account'}
             </Link>
@@ -83,7 +83,7 @@ function LoginForm() {
           <button
             type='button'
             onClick={handleGoogleSignIn}
-            className='w-full flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors'
+            className='w-full flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 transition-colors'
           >
             <GoogleIcon />
             Continue with Google
@@ -92,7 +92,7 @@ function LoginForm() {
           <button
             type='button'
             onClick={handleGitHubSignIn}
-            className='w-full flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors'
+            className='w-full flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 transition-colors'
           >
             <GitHubIcon />
             Continue with GitHub
@@ -117,7 +117,7 @@ function LoginForm() {
                 type='text'
                 autoComplete='name'
                 required
-                className='w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'
+                className='w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500'
               />
             </div>
           )}
@@ -132,7 +132,7 @@ function LoginForm() {
               type='email'
               autoComplete='email'
               required
-              className='w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'
+              className='w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500'
             />
           </div>
 
@@ -146,7 +146,7 @@ function LoginForm() {
               type='password'
               autoComplete={isRegister ? 'new-password' : 'current-password'}
               required
-              className='w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'
+              className='w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500'
             />
           </div>
 
@@ -160,7 +160,7 @@ function LoginForm() {
             type='submit'
             disabled={loading}
             aria-busy={loading}
-            className='w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+            className='w-full rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
           >
             {loading ? 'Please wait\u2026' : isRegister ? 'Create account' : 'Sign in'}
           </button>
