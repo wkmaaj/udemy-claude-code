@@ -61,12 +61,12 @@ export default function TagsPage() {
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           placeholder='New tag name…'
-          className='flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+          className='flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500'
         />
         <button
           type='submit'
           disabled={loading || !newName.trim()}
-          className='rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+          className='rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
         >
           {loading ? 'Adding…' : 'Add'}
         </button>

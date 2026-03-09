@@ -25,7 +25,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               href='/definitions'
               className={`font-medium transition-colors ${
                 pathname.startsWith('/definitions')
-                  ? 'text-blue-600'
+                  ? 'text-green-500'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -34,7 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link
               href='/tags'
               className={`font-medium transition-colors ${
-                pathname === '/tags' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'
+                pathname === '/tags' ? 'text-green-500' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               Tags
